@@ -1,0 +1,11 @@
+digraph directions {
+  r1 [label = "fmerge"];
+  r2 [label = "fmerge"];
+  r3 [label = "fmerge"];
+  r4 [label = "fmerge"];
+  "..." -> r4 -> r3 -> r2 -> r1;
+  x1 -> r1;
+  x2 -> r2;
+  x3 -> r3;
+  x4 -> r4;
+}
