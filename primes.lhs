@@ -35,7 +35,7 @@ Note that evaluating the head of the result triggers the evaluation of both
 arguments' heads. We'll need a version that takes the head of the left argument
 and puts that as the head of the result before ever evaluating the right
 argument. Then we'll be careful to call it only where we know the head of the
-right list is less than the head of the left.
+right list is at least as large as the head of the left.
 
 \begin{code}
 fmerge :: Ord a => [a] -> [a] -> [a]
