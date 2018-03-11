@@ -2,7 +2,7 @@
 \usepackage{graphicx}
 \usepackage{verbatim}
 \graphicspath{ {images/} }
-\newenvironment{code}{\footnotesize\verbatim}{\endverbatim\normalsize}
+\newenvironment{code}{\verbatim}{\endverbatim}
 \begin{document}
 
 \author{Spies, David}
