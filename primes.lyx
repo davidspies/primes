@@ -3,9 +3,6 @@
 \begin_document
 \begin_header
 \textclass article
-\begin_preamble
-%include polycode.fmt
-\end_preamble
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -90,31 +87,30 @@ Contrary to O'Neill's claims in "The Genuine Sieve of Eratosthenes", it's
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-main :: IO ()
+> main :: IO ()
 \end_layout
 
 \begin_layout Plain Layout
 
-main = print (take 30 primes)
+> main = print (take 30 primes)
 \end_layout
 
 \begin_layout Plain Layout
 
+\end_layout
 
-\backslash
-end{code}
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -129,41 +125,40 @@ All lists used in this document are infinite and sorted.
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-merge :: Ord a => [a] -> [a] -> [a]
+> merge :: Ord a => [a] -> [a] -> [a]
 \end_layout
 
 \begin_layout Plain Layout
 
-merge (x : xs) (y : ys)
+> merge (x : xs) (y : ys)
 \end_layout
 
 \begin_layout Plain Layout
 
-  | y < x = y : merge (x : xs) ys
+>   | y < x = y : merge (x : xs) ys
 \end_layout
 
 \begin_layout Plain Layout
 
-  | otherwise = x : merge xs (y : ys) 
+>   | otherwise = x : merge xs (y : ys)
 \end_layout
 
 \begin_layout Plain Layout
 
+\end_layout
 
-\backslash
-end{code}
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -183,31 +178,30 @@ This takes two sorted lists and merges them into a single sorted list.
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-fmerge :: Ord a => [a] -> [a] -> [a]
+> fmerge :: Ord a => [a] -> [a] -> [a]
 \end_layout
 
 \begin_layout Plain Layout
 
-fmerge (x : xs) ys = x : merge xs ys
+> fmerge (x : xs) ys = x : merge xs ys
 \end_layout
 
 \begin_layout Plain Layout
 
+\end_layout
 
-\backslash
-end{code} 
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -217,35 +211,39 @@ end{code}
 
 \begin_layout Standard
 With this in hand, we could define a function which lists all numbers whose
- only prime factors are 2 and 3 as follows: 
+ only prime factors are 2 and 3 as follows:
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-twosThreesOnly :: [Integer]
+> twosThreesOnly :: [Integer]
 \end_layout
 
 \begin_layout Plain Layout
 
-twosThreesOnly = fmerge (iterate (2 *) 1) [3 * x | x <- twosThreesOnly]
+> twosThreesOnly =
 \end_layout
 
 \begin_layout Plain Layout
 
+>   fmerge (iterate (2 *) 1) [3 * x | x <- twosThreesOnly]
+\end_layout
 
-\backslash
-end{code}
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -254,42 +252,39 @@ end{code}
 \end_layout
 
 \begin_layout Standard
-We can also use
- 
+We can also use 
 \family typewriter
 fmerge
 \family default
-\lang english
  to merge an infinite list of sorted lists together if we know the heads
  of the lists are already sorted.
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-fmergeAllNaive :: Ord a => [[a]] -> [a]
+> fmergeAllNaive :: Ord a => [[a]] -> [a]
 \end_layout
 
 \begin_layout Plain Layout
 
-fmergeAllNaive (x : xs) = fmerge x (fmergeAllNaive xs)
+> fmergeAllNaive (x : xs) = fmerge x (fmergeAllNaive xs)
 \end_layout
 
 \begin_layout Plain Layout
 
+\end_layout
 
-\backslash
-end{code} 
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -319,26 +314,13 @@ fmergeAllNaive
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{spec}
-\end_layout
-
-\begin_layout Plain Layout
-
 xs = x1 : x2 : x3 : x4 : ...
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{spec} 
 \end_layout
 
 \end_inset
@@ -452,51 +434,50 @@ fmergePrefix
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-fmergePrefix :: Ord a => Int -> [[a]] -> ([a], [[a]])
+> fmergePrefix :: Ord a => Int -> [[a]] -> ([a], [[a]])
 \end_layout
 
 \begin_layout Plain Layout
 
-fmergePrefix 1 (x : xs) = (x, xs)
+> fmergePrefix 1 (x : xs) = (x, xs)
 \end_layout
 
 \begin_layout Plain Layout
 
-fmergePrefix k xs = (fmerge y z, zs)
+> fmergePrefix k xs = (fmerge y z, zs)
 \end_layout
 
 \begin_layout Plain Layout
 
-  where
+>   where
 \end_layout
 
 \begin_layout Plain Layout
 
-    (y, ys) = fmergePrefix (k `quot` 2) xs
+>     (y, ys) = fmergePrefix (k `quot` 2) xs
 \end_layout
 
 \begin_layout Plain Layout
 
-    (z, zs) = fmergePrefix ((k + 1) `quot` 2) ys
+>     (z, zs) = fmergePrefix ((k + 1) `quot` 2) ys
 \end_layout
 
 \begin_layout Plain Layout
 
+\end_layout
 
-\backslash
-end{code} 
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -544,37 +525,50 @@ fmergePrefix
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-fmergeAll :: Ord a => [[a]] -> [a]
+> fmergeAll :: Ord a => [[a]] -> [a]
 \end_layout
 
 \begin_layout Plain Layout
 
-fmergeAll = go 1
+> fmergeAll = go 1
 \end_layout
 
 \begin_layout Plain Layout
 
-  where
+>   where
 \end_layout
 
 \begin_layout Plain Layout
 
-    go k xs = let (ys, zs) = fmergePrefix k xs in fmerge ys (go (k * 2)
- zs) 
-\backslash
-end{code} 
+>     go k xs =
+\end_layout
+
+\begin_layout Plain Layout
+
+>       let (ys, zs) = fmergePrefix k xs
+\end_layout
+
+\begin_layout Plain Layout
+
+>        in fmerge ys (go (k * 2) zs)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -674,46 +668,45 @@ exclude
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-excluding :: Ord a => [a] -> [a] -> [a]
+> excluding :: Ord a => [a] -> [a] -> [a]
 \end_layout
 
 \begin_layout Plain Layout
 
-(x : xs) `excluding` (y : ys) = case compare x y of
+> (x : xs) `excluding` (y : ys) = case compare x y of
 \end_layout
 
 \begin_layout Plain Layout
 
-  LT -> x : (xs `excluding` (y : ys))
+>   LT -> x : (xs `excluding` (y : ys))
 \end_layout
 
 \begin_layout Plain Layout
 
-  EQ -> xs `excluding` ys
+>   EQ -> xs `excluding` ys
 \end_layout
 
 \begin_layout Plain Layout
 
-  GT -> (x : xs) `excluding` ys
+>   GT -> (x : xs) `excluding` ys
 \end_layout
 
 \begin_layout Plain Layout
 
+\end_layout
 
-\backslash
-end{code}
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -756,24 +749,22 @@ composites
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+inline false
 status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-begin{code}
 \end_layout
 
 \begin_layout Plain Layout
 
-primes :: [Integer]
+> primes :: [Integer]
 \end_layout
 
 \begin_layout Plain Layout
 
-primes = 2 : ([3..] `excluding` composites)
+> primes = 2 : ([3..] `excluding` composites)
 \end_layout
 
 \begin_layout Plain Layout
@@ -782,19 +773,25 @@ primes = 2 : ([3..] `excluding` composites)
 
 \begin_layout Plain Layout
 
-composites :: [Integer]
+> composites :: [Integer]
 \end_layout
 
 \begin_layout Plain Layout
 
-composites = fmergeAll [[p * p, p * (p + 1)..] | p <- primes]
+> composites =
 \end_layout
 
 \begin_layout Plain Layout
 
+>   fmergeAll [[p * p, p * (p + 1)..] | p <- primes]
+\end_layout
 
-\backslash
-end{code}
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
