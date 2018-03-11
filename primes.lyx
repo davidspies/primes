@@ -1,0 +1,815 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+%include polycode.fmt
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Author
+David Spies
+\end_layout
+
+\begin_layout Title
+A list-based Sieve of Eratosthenes
+\end_layout
+
+\begin_layout Standard
+Contrary to O'Neill's claims in "The Genuine Sieve of Eratosthenes", it's
+ possible to build an efficient Sieve of Eratosthenes using only lists.
+ This document is literate Haskell.
+ It compiles and runs on GHC 8.2.2.
+ To compile it we'll need a main method.
+ Let's print out the first 30 primes:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+main :: IO ()
+\end_layout
+
+\begin_layout Plain Layout
+
+main = print (take 30 primes)
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+All lists used in this document are infinite and sorted.
+ All lists of lists are sorted on their heads.
+ First, lets define a merge function (for infinite sorted lists).
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+merge :: Ord a => [a] -> [a] -> [a]
+\end_layout
+
+\begin_layout Plain Layout
+
+merge (x : xs) (y : ys)
+\end_layout
+
+\begin_layout Plain Layout
+
+  | y < x = y : merge (x : xs) ys
+\end_layout
+
+\begin_layout Plain Layout
+
+  | otherwise = x : merge xs (y : ys) 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This takes two sorted lists and merges them into a single sorted list.
+ Note that evaluating the head of the result triggers the evaluation of
+ both arguments' heads.
+ We'll need a version that takes the head of the left argument and puts
+ that as the head of the result before ever evaluating the right argument.
+ Then we'll be careful to call it only where we know the head of the right
+ list is at least as large as the head of the left.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+fmerge :: Ord a => [a] -> [a] -> [a]
+\end_layout
+
+\begin_layout Plain Layout
+
+fmerge (x : xs) ys = x : merge xs ys
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code} 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With this in hand, we could define a function which lists all numbers whose
+ only prime factors are 2 and 3 as follows: 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+twosThreesOnly :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+twosThreesOnly = fmerge (iterate (2 *) 1) [3 * x | x <- twosThreesOnly]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can also use
+ 
+\family typewriter
+fmerge
+\family default
+\lang english
+ to merge an infinite list of sorted lists together if we know the heads
+ of the lists are already sorted.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+fmergeAllNaive :: Ord a => [[a]] -> [a]
+\end_layout
+
+\begin_layout Plain Layout
+
+fmergeAllNaive (x : xs) = fmerge x (fmergeAllNaive xs)
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code} 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This works and uses an impressively small amount of code, but isn't very
+ performant.
+ In the worst case, evaluating the 
+\begin_inset Formula $k$
+\end_inset
+
+th element can require 
+\begin_inset Formula $O\left(k\right)$
+\end_inset
+
+ running time.
+ To see why this is, let's look at what structure results from evaluating
+ 
+\family typewriter
+fmergeAllNaive
+\family default
+ on a list.
+ Suppose we have the list
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{spec}
+\end_layout
+
+\begin_layout Plain Layout
+
+xs = x1 : x2 : x3 : x4 : ...
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{spec} 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When we call 
+\family typewriter
+fmergeAllNaive xs
+\family default
+, the resulting structure looks something like Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:fmergeallnaive"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:fmergeallnaive"
+
+\end_inset
+
+Structure of 
+\family typewriter
+fmergeAllNaive
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename images/fig1.dot
+	height 30theight%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If an element belongs to list 
+\begin_inset Formula $x_{k}$
+\end_inset
+
+, then to ``bubble up'' to the top of our evaluation structure, it must
+ be compared against the first element of 
+\begin_inset Formula $x_{k-1}$
+\end_inset
+
+, followed by the first element of 
+\begin_inset Formula $x_{k-2}$
+\end_inset
+
+ etc.
+ until finally being compared against 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+To rectify this, let's first create a helper function for efficiently merging
+ a list prefix of length-
+\begin_inset Formula $k$
+\end_inset
+
+ (where 
+\begin_inset Formula $k>0$
+\end_inset
+
+).
+ The 
+\family typewriter
+fmergePrefix
+\family default
+ function returns both the merged prefix and the unmerged remainder.
+ As before, we assume the heads of the lists are themselves already sorted.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+fmergePrefix :: Ord a => Int -> [[a]] -> ([a], [[a]])
+\end_layout
+
+\begin_layout Plain Layout
+
+fmergePrefix 1 (x : xs) = (x, xs)
+\end_layout
+
+\begin_layout Plain Layout
+
+fmergePrefix k xs = (fmerge y z, zs)
+\end_layout
+
+\begin_layout Plain Layout
+
+  where
+\end_layout
+
+\begin_layout Plain Layout
+
+    (y, ys) = fmergePrefix (k `quot` 2) xs
+\end_layout
+
+\begin_layout Plain Layout
+
+    (z, zs) = fmergePrefix ((k + 1) `quot` 2) ys
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code} 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This should look familliarly like a standard merge-sort, except that we're
+ using 
+\family typewriter
+fmerge
+\family default
+ rather than 
+\family typewriter
+merge
+\family default
+ and all our lists are infinite.
+\end_layout
+
+\begin_layout Standard
+Notice that evaluating the first 
+\begin_inset Formula $n$
+\end_inset
+
+ elements of the resulting merged prefix requires at most 
+\begin_inset Formula $O\left(n\log k\right)$
+\end_inset
+
+ steps as any element needs to be compared with at most 
+\begin_inset Formula $\log_{2}k$
+\end_inset
+
+ others to bubble to the top.
+ Now here's a more efficient 
+\family typewriter
+fmergeAll
+\family default
+ implementation which makes use of 
+\family typewriter
+fmergePrefix
+\family default
+.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+fmergeAll :: Ord a => [[a]] -> [a]
+\end_layout
+
+\begin_layout Plain Layout
+
+fmergeAll = go 1
+\end_layout
+
+\begin_layout Plain Layout
+
+  where
+\end_layout
+
+\begin_layout Plain Layout
+
+    go k xs = let (ys, zs) = fmergePrefix k xs in fmerge ys (go (k * 2)
+ zs) 
+\backslash
+end{code} 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+fmergeAll
+\family default
+ is quite similar to 
+\family typewriter
+fmergeAllNaive
+\family default
+ except that instead of merging lists together one at a time, we merge them
+ in batches of exponentially growing size.
+ Each batch is efficiently merged using fmergePrefix.
+ A consequence is that any element from the 
+\begin_inset Formula $k^{\mbox{th}}$
+\end_inset
+
+ list needs to be compared with at most 
+\begin_inset Formula $O\left(\log k\right)$
+\end_inset
+
+ elements to bubble to the top of the resulting structure of thunks (see
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:fmergeall"
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:fmergeall"
+
+\end_inset
+
+Structure of 
+\family typewriter
+fmergeAll
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename images/fig2.dot
+	height 30theight%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In addition to merging lists, it will also be useful to 
+\emph on
+exclude
+\emph default
+ elements from a list.
+ The implementation is straightforward.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+excluding :: Ord a => [a] -> [a] -> [a]
+\end_layout
+
+\begin_layout Plain Layout
+
+(x : xs) `excluding` (y : ys) = case compare x y of
+\end_layout
+
+\begin_layout Plain Layout
+
+  LT -> x : (xs `excluding` (y : ys))
+\end_layout
+
+\begin_layout Plain Layout
+
+  EQ -> xs `excluding` ys
+\end_layout
+
+\begin_layout Plain Layout
+
+  GT -> (x : xs) `excluding` ys
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With this in hand, we can mutually recursively define two lists: 
+\family typewriter
+primes
+\family default
+ and 
+\family typewriter
+composites
+\family default
+ which respectively are lists of all the prime and composite integers.
+ The composites are the merged multiples of the prime numbers.
+ Note that if we start from the square of each prime, then any composite
+ number 
+\begin_inset Formula $n$
+\end_inset
+
+ will occur once in the composites list for each of its prime factors 
+\begin_inset Formula $p\le\sqrt{n}$
+\end_inset
+
+ (every composite number must have such a factor).
+ The primes are then just the list of all numbers larger than 
+\begin_inset Formula $1$
+\end_inset
+
+ excluding the composites.
+ To avoid unbounded recursion, the number 
+\begin_inset Formula $2$
+\end_inset
+
+ must be explicitly given as a prime.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+primes :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+primes = 2 : ([3..] `excluding` composites)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+composites :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+composites = fmergeAll [[p * p, p * (p + 1)..] | p <- primes]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And that's it.
+ 
+\family typewriter
+primes
+\family default
+ is an efficient list of all the prime numbers.
+\end_layout
+
+\end_body
+\end_document
