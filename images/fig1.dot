@@ -1,11 +1,23 @@
-digraph directions {
+digraph g {
   r1 [label = "fmerge"];
   r2 [label = "fmerge"];
   r3 [label = "fmerge"];
   r4 [label = "fmerge"];
-  "..." -> r4 -> r3 -> r2 -> r1;
-  x1 -> r1;
-  x2 -> r2;
-  x3 -> r3;
-  x4 -> r4;
+  r5 [label = "fmerge"];
+  r6 [label = "fmerge"];
+  r7 [label = "fmerge"];
+  r1 : se -> r2 [dir=back];
+  r2 : se -> r3 [dir=back];
+  r3 : se -> r4 [dir=back];
+  r4 : se -> r5 [dir=back];
+  r5 : se -> r6 [dir=back];
+  r6 : se -> r7 [dir=back];
+  r7 : se -> "..." [dir=back];
+  r1 : sw -> x1 [dir=back];
+  r2 : sw -> x2 [dir=back];
+  r3 : sw -> x3 [dir=back];
+  r4 : sw -> x4 [dir=back];
+  r5 : sw -> x5 [dir=back];
+  r6 : sw -> x6 [dir=back];
+  r7 : sw -> x7 [dir=back];
 }

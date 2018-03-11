@@ -10,7 +10,8 @@
 
 Contrary to O'Neill's claims in "The Genuine Sieve of Eratosthenes", it's
 possible to build an efficient Sieve of Eratosthenes using only lists.
-This document is literate Haskell. To compile it we'll need a main method.
+This document is literate Haskell. It compiles and runs on GHC 8.2.2. To compile
+it we'll need a main method.
 Let's print out the first 30 primes:
 
 \begin{code}
@@ -125,12 +126,13 @@ that instead of merging lists together one at a time, we merge them
 in batches of exponentially growing size. Each batch is efficiently
 merged using fmergePrefix. A consequence is that any element from
 the $k^{\mbox{th}}$ list needs to be compared with at most $O\left(\log k\right)$
-elements to bubble to the top of the resulting structure of thunks.
+elements to bubble to the top of the resulting structure of thunks (see Figure
+\ref{fmergeall}).
 
 \begin{figure}
 
 
-\caption{Structure of fmergeAll}
+\caption{\label{fmergeall}Structure of fmergeAll}
 
 
 \includegraphics[height=0.3\textheight]{fig2}
