@@ -80,10 +80,30 @@ David Spies
 A list-based Sieve of Eratosthenes
 \end_layout
 
+\begin_layout Abstract
+In 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "o2009genuine"
+
+\end_inset
+
+, they claim that in order to write an efficient (within 
+\begin_inset Formula $O\left(\log n\right)$
+\end_inset
+
+ performance of the imperative version) Sieve of Eratosthenes, one must
+ resort to more complex data-structures.
+ In this paper, we introduce a Sieve of Eratosthenes which achieves the
+ same big-O performance using 
+\emph on
+only
+\emph default
+ infinite lists.
+\end_layout
+
 \begin_layout Standard
-Contrary to O'Neill's claims in "The Genuine Sieve of Eratosthenes", it's
- possible to build an efficient Sieve of Eratosthenes using only lists.
- This document is literate Haskell.
+This document is literate Haskell.
  It compiles and runs on GHC 8.2.2.
  To compile it we'll need a main method.
  Let's print out the first 30 primes:
@@ -254,12 +274,10 @@ end{code}
 \end_layout
 
 \begin_layout Standard
-We can also use
- 
+We can also use 
 \family typewriter
 fmerge
 \family default
-\lang english
  to merge an infinite list of sorted lists together if we know the heads
  of the lists are already sorted.
 \end_layout
@@ -809,6 +827,17 @@ And that's it.
 primes
 \family default
  is an efficient list of all the prime numbers.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "primes"
+options "plain"
+
+\end_inset
+
+
 \end_layout
 
 \end_body

@@ -18,13 +18,17 @@
 
 
 \title{A list-based Sieve of Eratosthenes}
-
 \maketitle
-Contrary to O'Neill's claims in \textquotedbl{}The Genuine Sieve of
-Eratosthenes\textquotedbl{}, it's possible to build an efficient Sieve
-of Eratosthenes using only lists. This document is literate Haskell.
-It compiles and runs on GHC 8.2.2. To compile it we'll need a main
-method. Let's print out the first 30 primes:
+\begin{abstract}
+In \cite{o2009genuine}, they claim that in order to write an efficient
+(within $O\left(\log n\right)$ performance of the imperative version)
+Sieve of Eratosthenes, one must resort to more complex data-structures.
+In this paper, we introduce a Sieve of Eratosthenes which achieves
+the same big-O performance using \emph{only} infinite lists.
+\end{abstract}
+This document is literate Haskell. It compiles and runs on GHC 8.2.2.
+To compile it we'll need a main method. Let's print out the first
+30 primes:
 
 \begin{code}
 main :: IO ()
@@ -63,9 +67,8 @@ twosThreesOnly :: [Integer]
 twosThreesOnly = fmerge (iterate (2 *) 1) [3 * x | x <- twosThreesOnly]
 \end{code}
 
-We can also use\inputencoding{latin1}{ \texttt{fmerge}}\inputencoding{latin9}
-to merge an infinite list of sorted lists together if we know the
-heads of the lists are already sorted.
+We can also use \texttt{fmerge} to merge an infinite list of sorted
+lists together if we know the heads of the lists are already sorted.
 
 \begin{code}
 fmergeAllNaive :: Ord a => [[a]] -> [a]
@@ -182,4 +185,8 @@ composites = fmergeAll [[p * p, p * (p + 1)..] | p <- primes]
 
 And that's it. \texttt{primes} is an efficient list of all the prime
 numbers.
+
+\bibliographystyle{plain}
+\bibliography{primes}
+
 \end{document}
