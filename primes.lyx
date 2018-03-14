@@ -2,8 +2,11 @@
 \lyxformat 474
 \begin_document
 \begin_header
-\textclass article
+\textclass jfp
 \begin_preamble
+\usepackage{verbatim}
+\newenvironment{code}{\verbatim}{\endverbatim}
+
 %include polycode.fmt
 \end_preamble
 \use_default_options true
@@ -81,32 +84,110 @@ A list-based Sieve of Eratosthenes
 \end_layout
 
 \begin_layout Abstract
+We introduce a Sieve of Eratosthenes in Haskell which produces an infinite
+ list of prime numbers, and achieves 
+\begin_inset Formula $O\left(n\log n\log\log n\right)$
+\end_inset
+
+ performance without making use of 
+\emph on
+any
+\emph default
+ data structure besides infinite lists.
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
 In 
+\begin_inset Quotes eld
+\end_inset
+
+The Genuine Sieve of Eratosthenes
+\begin_inset Quotes erd
+\end_inset
+
+ 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "o2009genuine"
 
 \end_inset
 
-, they claim that in order to write an efficient (within 
-\begin_inset Formula $O\left(\log n\right)$
-\end_inset
+, they refute the claim that a well-known Haskell one-liner for generating
+ a list of prime numbers is an implementation of the Sieve of Eratosthenes
+ and show that its computaitonal behavior is fundamentally different (not
+ to mention significantly slower).
+ They then go on to produce an actual implementation making use first of
+ binary-tree-based maps and later of queues claiming:
+\end_layout
 
- performance of the imperative version) Sieve of Eratosthenes, one must
- resort to more complex data-structures.
- In this paper, we introduce a Sieve of Eratosthenes which achieves the
- same big-O performance using 
-\emph on
-only
-\emph default
- infinite lists.
+\begin_layout Quote
+An implementation of the actual sieve has its own elegance, showing the
+ utility of well-known data structures over the simplicity of lists [...] choosing
+ the right data structure for the problem at hand [can make] an order of
+ magnitude performance difference.
 \end_layout
 
 \begin_layout Standard
-This document is literate Haskell.
- It compiles and runs on GHC 8.2.2.
- To compile it we'll need a main method.
- Let's print out the first 30 primes:
+Here, we produce an implementation of the Sieve of Eratosthenes which 
+\emph on
+is
+\emph default
+ computationally similar to O'Neill's in that it has the same big-
+\begin_inset Formula $O$
+\end_inset
+
+ performance and ultimately works by merging together streams of composites
+ and then excluding them from a base-list.
+ But it does so without ever making explicit use of any data-structure besides
+ infinite lists.
+ The heap which merges together lists of composites is implicitly built
+ into the way the function calls which generate these lists are structured
+ rather than being encoded explicitly as data.
+\end_layout
+
+\begin_layout Subsection
+Literate Haskell
+\end_layout
+
+\begin_layout Standard
+This document (or rather 
+\family typewriter
+primes.lhs
+\family default
+, the LaTeX file used to generate this document) is literate Haskell.
+ It has been tested on GHC 8.2.2.
+ To compile it we will need a main method.
+ We can take a positive number 
+\begin_inset Formula $n$
+\end_inset
+
+ as the sole command line argument print out the 
+\begin_inset Formula $n^{\mbox{th}}$
+\end_inset
+
+ prime by indexing into the infinite list of primes,
+\family typewriter
+ primes 
+\family default
+
+\begin_inset CommandInset ref
+LatexCommand vpageref
+reference "primescomposites"
+
+\end_inset
+
+: 
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:main-method"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -122,12 +203,31 @@ begin{code}
 
 \begin_layout Plain Layout
 
+import System.Environment (getArgs)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 main :: IO ()
 \end_layout
 
 \begin_layout Plain Layout
 
-main = print (take 30 primes)
+main = do
+\end_layout
+
+\begin_layout Plain Layout
+
+  [ind] <- map read <$> getArgs
+\end_layout
+
+\begin_layout Plain Layout
+
+  print $ primes !! (ind - 1)
 \end_layout
 
 \begin_layout Plain Layout
@@ -143,9 +243,54 @@ end{code}
 \end_layout
 
 \begin_layout Standard
+To run it, try:
+\end_layout
+
+\begin_layout Verbatim
+
+$ ghc -O2 primes.lhs
+\end_layout
+
+\begin_layout Verbatim
+
+$ ./primes 1000000
+\end_layout
+
+\begin_layout Verbatim
+
+15485863
+\end_layout
+
+\begin_layout Standard
+Finding the millionth prime takes about 7 seconds on an Intel Core™ i5-4200M
+ CPU.
+\end_layout
+
+\begin_layout Standard
+Additionally, 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family typewriter
+ghci -i primes.lhs
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+ can be used to otherwise play with the various functions and structures
+ defined in this paper.
+\end_layout
+
+\begin_layout Section
+Merging Lists
+\end_layout
+
+\begin_layout Standard
 All lists used in this document are infinite and sorted.
- All lists of lists are sorted on their heads.
- First, lets define a merge function (for infinite sorted lists).
+ All lists of lists are infinite and sorted on their heads.
+ When dealing with sorted lists, it is useful to have a merge function.
 \end_layout
 
 \begin_layout Standard
@@ -195,11 +340,20 @@ end{code}
 This takes two sorted lists and merges them into a single sorted list.
  Note that evaluating the head of the result triggers the evaluation of
  both arguments' heads.
- We'll need a version that takes the head of the left argument and puts
- that as the head of the result before ever evaluating the right argument.
- Then we'll be careful to call it only where we know the head of the right
- list is at least as large as the head of the left.
- 
+ Instead of this merge function, we will need one which prepends the head
+ of the left list before merging the remainder with the right list.
+ If we can prove via some 
+\emph on
+other
+\emph default
+ means that the head of the left input is less than the head of the right,
+ then this will return the same result as just calling 
+\family typewriter
+merge
+\family default
+.
+ But obtaining the head of the result won't require any evaluation of the
+ right argument.
 \end_layout
 
 \begin_layout Standard
@@ -236,8 +390,8 @@ end{code}
 \end_layout
 
 \begin_layout Standard
-With this in hand, we could define a function which lists all numbers whose
- only prime factors are 2 and 3 as follows: 
+To see how this might be useful, here is an ordered list of all numbers
+ whose only prime factors are 2 and 3:
 \end_layout
 
 \begin_layout Standard
@@ -274,12 +428,33 @@ end{code}
 \end_layout
 
 \begin_layout Standard
-We can also use 
+Were we to define it using 
+\family typewriter
+merge
+\family default
+ rather than 
 \family typewriter
 fmerge
 \family default
- to merge an infinite list of sorted lists together if we know the heads
- of the lists are already sorted.
+, attempting to evaluate 
+\family typewriter
+twosThreesOnly
+\family default
+ would simply cause our program to loop forever unable to determine the
+ recursively-defined first element.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+fmerge
+\family default
+ can 
+\emph on
+also
+\emph default
+ be used to merge an infinite list of sorted lists, provided we know the
+ heads of the lists are already sorted.
 \end_layout
 
 \begin_layout Standard
@@ -307,7 +482,7 @@ fmergeAllNaive (x : xs) = fmerge x (fmergeAllNaive xs)
 
 
 \backslash
-end{code} 
+end{code}
 \end_layout
 
 \end_inset
@@ -316,52 +491,29 @@ end{code}
 \end_layout
 
 \begin_layout Standard
-This works and uses an impressively small amount of code, but isn't very
- performant.
+This works and uses an impressively small amount of code, but theoretically
+ is not very performant.
  In the worst case, evaluating the 
 \begin_inset Formula $k$
 \end_inset
 
 th element can require 
-\begin_inset Formula $O\left(k\right)$
+\begin_inset Formula $\Omega\left(k\right)$
 \end_inset
 
  running time.
- To see why this is, let's look at what structure results from evaluating
+ To see why this is, take a look at what structure results from evaluating
  
 \family typewriter
 fmergeAllNaive
 \family default
  on a list.
- Suppose we have the list
+ Suppose we have the list:
 \end_layout
 
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{spec}
-\end_layout
-
-\begin_layout Plain Layout
+\begin_layout Verbatim
 
 xs = x1 : x2 : x3 : x4 : ...
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{spec} 
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -419,10 +571,6 @@ fmergeAllNaive
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 
@@ -433,8 +581,16 @@ If an element belongs to list
 \begin_inset Formula $x_{k}$
 \end_inset
 
-, then to ``bubble up'' to the top of our evaluation structure, it must
- be compared against the first element of 
+, then to 
+\begin_inset Quotes eld
+\end_inset
+
+bubble up
+\begin_inset Quotes erd
+\end_inset
+
+ to the top of our evaluation structure, it must be compared against the
+ first element of 
 \begin_inset Formula $x_{k-1}$
 \end_inset
 
@@ -451,12 +607,16 @@ If an element belongs to list
 \end_layout
 
 \begin_layout Standard
-To rectify this, let's first create a helper function for efficiently merging
- a list prefix of length-
+To rectify this, we will first create a helper function for efficiently
+ merging 
+\emph on
+just the length-
 \begin_inset Formula $k$
 \end_inset
 
- (where 
+ prefix
+\emph default
+ of a list of lists (where 
 \begin_inset Formula $k>0$
 \end_inset
 
@@ -532,7 +692,7 @@ fmerge
 \family typewriter
 merge
 \family default
- and all our lists are infinite.
+ (and all our lists are infinite).
 \end_layout
 
 \begin_layout Standard
@@ -549,7 +709,7 @@ Notice that evaluating the first
 \end_inset
 
  others to bubble to the top.
- Now here's a more efficient 
+ Now here is a more efficient 
 \family typewriter
 fmergeAll
 \family default
@@ -590,7 +750,12 @@ fmergeAll = go 1
 \begin_layout Plain Layout
 
     go k xs = let (ys, zs) = fmergePrefix k xs in fmerge ys (go (k * 2)
- zs) 
+ zs)
+\end_layout
+
+\begin_layout Plain Layout
+
+
 \backslash
 end{code} 
 \end_layout
@@ -611,7 +776,11 @@ fmergeAllNaive
 \family default
  except that instead of merging lists together one at a time, we merge them
  in batches of exponentially growing size.
- Each batch is efficiently merged using fmergePrefix.
+ Each batch is efficiently merged using 
+\family typewriter
+fmergePrefix
+\family default
+.
  A consequence is that any element from the 
 \begin_inset Formula $k^{\mbox{th}}$
 \end_inset
@@ -629,7 +798,6 @@ reference "fig:fmergeall"
 \end_inset
 
 ).
- 
 \end_layout
 
 \begin_layout Standard
@@ -681,6 +849,10 @@ fmergeAll
 
 \end_layout
 
+\begin_layout Section
+Excluding From a List
+\end_layout
+
 \begin_layout Standard
 In addition to merging lists, it will also be useful to 
 \emph on
@@ -688,7 +860,6 @@ exclude
 \emph default
  elements from a list.
  The implementation is straightforward.
- 
 \end_layout
 
 \begin_layout Standard
@@ -739,6 +910,10 @@ end{code}
 
 \end_layout
 
+\begin_layout Section
+Primes and Composites
+\end_layout
+
 \begin_layout Standard
 With this in hand, we can mutually recursively define two lists: 
 \family typewriter
@@ -765,12 +940,20 @@ composites
 \end_inset
 
  excluding the composites.
- To avoid unbounded recursion, the number 
+ The number 
 \begin_inset Formula $2$
 \end_inset
 
- must be explicitly given as a prime.
+ is explicitly given as the head of the list to avoid infinite looping to
+ find the head of the list at runtime.
  
+\begin_inset CommandInset label
+LatexCommand label
+name "primescomposites"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -821,19 +1004,248 @@ end{code}
 \end_layout
 
 \begin_layout Standard
-And that's it.
- 
+Since the list of primes is in ascending order and the operation of squaring
+ is monotonic on positive integers, we can be sure that the heads of the
+ composite lists to be merged are also in ascending order.
+ Thus it is safe to use 
+\family typewriter
+fmergeAll
+\family default
+ here for merging together all the lists of composites.
+\end_layout
+
+\begin_layout Section
+Rolling The Wheel
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "o2009genuine"
+
+\end_inset
+
+ they additionally show how to build a 
+\begin_inset Quotes eld
+\end_inset
+
+wheel
+\begin_inset Quotes erd
+\end_inset
+
+ sieve by skipping multiples of the smallest (and hence most common) primes.
+ We can do the same with the list-based version.
+ First, observe how we can ignore all the even numbers in our computation:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+oddPrimes :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+oddPrimes = 3 : ([5,7..] `excluding` oddComposites)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+oddComposites :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+oddComposites = fmergeAll [[p * p, p * (p + 2)..] | p <- primes]
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+primes2 :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+primes2 = 2 : oddPrimes
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Re-running with 
 \family typewriter
 primes
 \family default
- is an efficient list of all the prime numbers.
+ changed to 
+\family typewriter
+primes2
+\family default
+ in the main method 
+\begin_inset CommandInset ref
+LatexCommand vpageref
+reference "sub:main-method"
+
+\end_inset
+
+ gives us the millionth prime in only 3.5 seconds.
+ Nearly exactly half of what it costs using the straightforward sieve.
+\end_layout
+
+\begin_layout Standard
+To ignore multiples of 3 as well, we start with the list of prime 
+\family typewriter
+candidates
+\family default
+ and then filter out the composites based on those.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{code}
+\end_layout
+
+\begin_layout Plain Layout
+
+wheelCandidates :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+wheelCandidates = 5 : concat [[n + 1, n + 5] | n <- [6, 12..]]
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+wheelPrimes :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+wheelPrimes = 5 : (tail wheelCandidates) `excluding` wheelComposites
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+wheelComposites :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+wheelComposites =
+\end_layout
+
+\begin_layout Plain Layout
+
+  fmergeAll [[p * k | k <- dropWhile (< p) wheelCandidates]
+\end_layout
+
+\begin_layout Plain Layout
+
+    | p <- wheelPrimes]
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+primes3 :: [Integer]
+\end_layout
+
+\begin_layout Plain Layout
+
+primes3 = 2 : 3 : wheelPrimes
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{code}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And by changing 
+\family typewriter
+primes
+\family default
+ to 
+\family typewriter
+primes3
+\family default
+ we observe an almost-negligible speedup from 3.5 to 3.3 seconds to find the
+ millionth prime.
+ Perhaps a greater speedup could be obtained by replacing the 
+\family typewriter
+dropWhile
+\family default
+ above with a direct computation of the first term for each list or by finding
+ a way to generate successive composites by addition rather than multiplication
+ as is done in the 
+\family typewriter
+primes
+\family default
+ and 
+\family typewriter
+primes2
+\family default
+ case.
 \end_layout
 
 \begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 bibfiles "primes"
-options "plain"
+options "jfp"
 
 \end_inset
 
