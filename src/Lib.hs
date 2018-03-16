@@ -57,7 +57,7 @@ rollWheel nGenPrimes
     spokes = [1..lcmgen] `excluding` multiplesOf genPrimes
     -- Exclude 1
     wpCandidates :: [Integer]
-    wpCandidates = tail $ concat [map (k +) spokes | k <- [0, lcmgen..]]
+    wpCandidates = tail $ (+) <$> [0, lcmgen..] <*> spokes
     wheelPrimes :: [Integer]
     wheelPrimes =
       head wpCandidates : tail wpCandidates `excluding` wheelComposites
