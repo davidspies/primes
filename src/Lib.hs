@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
-
 module Lib where
 
 merge :: Ord a => [a] -> [a] -> [a]
@@ -10,6 +8,7 @@ merge xs@(x : xs') ys@(y : ys')
   | otherwise = x : merge xs' ys
 
 fmerge :: Ord a => [a] -> [a] -> [a]
+fmerge [] ys       = ys
 fmerge (x : xs) ys = x : merge xs ys
 
 fmergePrefix :: Ord a => Int -> [[a]] -> ([a], [[a]])
